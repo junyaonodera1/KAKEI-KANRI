@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>わが家のお金アプリ</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans JP', sans-serif; color: #1E2430;
+    background: linear-gradient(180deg, #FBFAF7 0%, #F2F0E9 100%);
+    min-height: 100vh;
+  }
+  .hba { max-width: 480px; margin: 0 auto; padding: 20px 16px 60px; }
+  .hba h1, .hba h2, .num { font-family: 'Shippori Mincho', serif; }
+  input, select, button { font-family: inherit; }
+  input, select { font-variant-numeric: tabular-nums; }
+
+  .app-header { text-align: center; margin-bottom: 18px; }
+  .app-header h1 {
+    font-size: 24px; margin: 0 0 4px; letter-spacing: 0.02em;
+    background: linear-gradient(90deg, #1E2430, #2F6F5E);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .app-header .sub { font-size: 11px; color: #A6A28F; }
+  .conn-dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:4px; }
+
+  .hba-tabs {
+    display: flex; flex-wrap: wrap; gap: 6px; background: #EFEDE4; border-radius: 16px;
+    padding: 6px; margin-bottom: 18px;
+  }
+  .hba-tab {
+    flex: 1 1 30%; text-align: center; padding: 10px 6px; font-size: 12px;
+    cursor: pointer; color: #8B8776; border-radius: 12px; white-space: nowrap;
+    transition: all 0.2s ease;
+  }
+  .hba-tab.active { color: #fff; background: #1E2430; font-weight: 700; border-radius: 12px; box-shadow: 0 2px 6px rgba(30,36,48,0.25); }
+  .hba-page { display: none; animation: fadeIn 0.25s ease; }
+  .hba-page.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .hba-card {
+    background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px;
+    box-shadow: 0 2px 10px rgba(30,36,48,0.06); border: 1px solid #F0EEE5;
+  }
+  .hba-action-card {
+    background: linear-gradient(135deg, #EEF5F1, #E6F0EA); border-left: 4px solid #2F6F5E;
+    border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(47,111,94,0.08);
+  }
+  .hba-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid #F2F0E9; font-size: 14px; gap: 8px;
+  }
+  .hba-row:last-child { border-bottom: none; }
+
+  input[type=number], input[type=text], input[type=month] {
+    border: 1px solid #E3E0D4; border-radius: 8px; padding: 7px 10px; font-size: 14px;
+    width: 100px; text-align: right; background: #FCFBF8; transition: border-color 0.15s;
+  }
+  input:focus, select:focus { outline: none; border-color: #2F6F5E; }
+  select { border: 1px solid #E3E0D4; border-radius: 8px; padding: 7px; font-size: 13px; background: #FCFBF8; }
+
+  button { transition: all 0.15s ease; }
+  button.primary {
+    width: 100%; background: #1E2430; color: #fff; border: none; border-radius: 999px;
+    padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; margin: 10px 0;
+    box-shadow: 0 3px 10px rgba(30,36,48,0.25);
+  }
+  button.primary:active { transform: scale(0.98); }
+  button.secondary {
+    background: #fff; color: #1E2430; border: 1px solid #D8D5C8; border-radius: 999px;
+    padding: 7px 14px; font-size: 12px; cursor: pointer;
+  }
+  button.danger {
+    background: #fff; color: #C0503A; border: 1px solid #EDCFC5; border-radius: 999px;
+    padding: 5px 12px; font-size: 11px; cursor: pointer;
+  }
+  .muted { color: #A6A28F; font-size: 12px; }
+  .big { font-size: 23px; font-weight: 700; letter-spacing: 0.01em; }
+  .status { font-size: 12px; color: #2F6F5E; text-align: center; margin-top: 6px; min-height: 16px; }
+  .pill { display: inline-block; background: #F2F0E9; border-radius: 999px; padding: 2px 10px; font-size: 11px; color: #8B8776; }
+  .loading-screen { text-align:center; padding: 80px 20px; color:#A6A28F; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="hba">
+  <div class="app-header">
+    <h1>わが家のお金アプリ</h1>
+    <div class="sub" id="conn-status"><span class="conn-dot" style="background:#D8B24A;"></span>接続中…</div>
+  </div>
+
+  <div id="app-root" style="display:none;">
+    <div class="hba-tabs">
+      <div class="hba-tab active" data-page="instr">振込指示</div>
+      <div class="hba-tab" data-page="input">今月の入力</div>
+      <div class="hba-tab" data-page="settings">設定</div>
+      <div class="hba-tab" data-page="sim">シミュレーション</div>
+      <div class="hba-tab" data-page="history">履歴</div>
+    </div>
+
+    <!-- 振込指示ページ -->
+    <div class="hba-page active" id="page-instr">
+      <div class="hba-card">
+        <div class="muted">対象月</div>
+        <div class="big" id="instr-month">-</div>
+      </div>
+      <div id="instr-content"></div>
+    </div>
+
+    <!-- 入力ページ -->
+    <div class="hba-page" id="page-input">
+      <div class="hba-card">
+        <div class="hba-row"><span>対象年月</span><input type="month" id="in-month"></div>
+        <div class="hba-row"><span>夫の手取り(万円)</span><input type="number" step="0.1" id="in-h-income"></div>
+        <div class="hba-row"><span>妻の手取り(万円)</span><input type="number" step="0.1" id="in-w-income"></div>
+        <div class="hba-row"><span>夫メインバンク残高(万円)</span><input type="number" step="0.1" id="in-h-balance"></div>
+        <div class="hba-row"><span>妻メインバンク残高(万円)</span><input type="number" step="0.1" id="in-w-balance"></div>
+      </div>
+      <button class="primary" id="save-month-btn">この月を保存して振込指示を見る</button>
+      <div class="status" id="save-status"></div>
+    </div>
+
+    <!-- 設定ページ -->
+    <div class="hba-page" id="page-settings">
+      <div class="hba-card">
+        <div class="hba-row"><span>夫の手取り 目安(万円)</span><input type="number" step="0.1" id="set-h-default"></div>
+        <div class="hba-row"><span>子供手当 月額(万円)</span><input type="number" step="0.1" id="set-child"></div>
+      </div>
+      <div class="muted" style="margin: 16px 0 6px;">カテゴリ一覧(タップで編集)</div>
+      <div id="cat-list"></div>
+      <button class="secondary" id="add-cat-btn" style="width:100%; margin-top:8px;">＋ カテゴリを追加</button>
+      <button class="primary" id="save-settings-btn">設定を保存</button>
+      <div class="status" id="settings-status"></div>
+    </div>
+
+    <!-- 履歴ページ -->
+    <div class="hba-page" id="page-history">
+      <div id="history-list"></div>
+    </div>
+
+    <!-- 将来シミュレーションページ -->
+    <div class="hba-page" id="page-sim">
+      <p class="muted" style="margin-bottom:12px;">積立系カテゴリの月額を、複利で運用した場合の将来額を試算します。年利は各カテゴリごとに変更できます(デフォルト6%)。</p>
+      <div id="sim-list"></div>
+    </div>
+  </div>
+
+  <div id="loading-screen" class="loading-screen">データを読み込んでいます…</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  // ---- Firebaseの設定(このプロジェクト専用の値。夫婦以外の家庭が同じ値を使っても混ざりません) ----
+  const firebaseConfig = {
+    apiKey: "AIzaSyCZcRsXrrOVL8y1coeqn9-ypkJVty7-UeI",
+    authDomain: "kakei-kanri-79fc4.firebaseapp.com",
+    projectId: "kakei-kanri-79fc4",
+    storageBucket: "kakei-kanri-79fc4.firebasestorage.app",
+    messagingSenderId: "30490789761",
+    appId: "1:30490789761:web:b32b334568229e8f025500"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  const ACCOUNTS = ["夫メインバンク","妻メインバンク","妻PayPay口座","夫の投資用口座","妻の投資用口座(SBI NISA)"];
+  const DEFAULT_CATS = [
+    {id:"loan", name:"住宅ローン返済", amount:18.8, type:"支出", account:"夫メインバンク"},
+    {id:"childcare_fee", name:"保育料(定額)", amount:6.3, type:"支出", account:"夫メインバンク"},
+    {id:"insurance_husband", name:"夫の保険料", amount:1.1, type:"支出", account:"夫メインバンク"},
+    {id:"phone_husband", name:"夫のスマホ代", amount:0.75, type:"支出", account:"夫メインバンク"},
+    {id:"husband_allowance", name:"夫のお小遣い", amount:3.0, type:"支出", account:"夫メインバンク"},
+    {id:"insurance_wife", name:"妻の保険料", amount:1.1, type:"支出", account:"妻メインバンク"},
+    {id:"phone_wife", name:"妻のスマホ代", amount:0.75, type:"支出", account:"妻メインバンク"},
+    {id:"wife_allowance", name:"妻のお小遣い", amount:5.0, type:"支出", account:"妻メインバンク"},
+    {id:"food", name:"食費", amount:10.5, type:"支出", account:"妻PayPay口座"},
+    {id:"daily_goods", name:"日用品", amount:2.0, type:"支出", account:"妻PayPay口座"},
+    {id:"childcare_daily", name:"育児(おむつ等)", amount:2.0, type:"支出", account:"妻PayPay口座"},
+    {id:"transport", name:"交通", amount:3.2, type:"支出", account:"妻PayPay口座"},
+    {id:"education_daily", name:"教育(日々)", amount:1.0, type:"支出", account:"妻PayPay口座"},
+    {id:"reserve", name:"予備費", amount:2.5, type:"支出", account:"妻PayPay口座"},
+    {id:"leisure", name:"レジャー", amount:2.0, type:"支出", account:"妻PayPay口座"},
+    {id:"living_other", name:"生活費(水道光熱・被服)", amount:4.0, type:"支出", account:"妻PayPay口座"},
+    {id:"retire_invest", name:"老後資金(NISA+iDeCo)", amount:1.5, type:"積立", account:"夫の投資用口座", annualReturn:6, goalTarget:null, currentBalance:0},
+    {id:"loan_payoff_fund", name:"ローン完済準備金", amount:1.5, type:"積立", account:"夫の投資用口座", annualReturn:6, goalTarget:1303, currentBalance:0},
+    {id:"repair_fund", name:"住宅修繕費", amount:1.5, type:"積立", account:"夫の投資用口座", annualReturn:6, goalTarget:180, currentBalance:0},
+    {id:"education_fund", name:"教育資金積立(子2人分)", amount:3.0, type:"積立", account:"妻の投資用口座(SBI NISA)", annualReturn:6, goalTarget:800, currentBalance:0},
+  ];
+  const DEFAULT_SETTINGS = { husbandIncomeDefault: 60, childAllowance: 1.5, categories: DEFAULT_CATS };
+
+  let settings = null;
+  let monthsCache = {};
+  let settingsLoaded = false, monthsLoaded = false, appStarted = false;
+  let currentMonthKey = null;
+
+  function thisMonthStr(){ return new Date().toISOString().slice(0,7); }
+  function fmt(n){ return (Math.round(n*10)/10).toFixed(1); }
+
+  function setConn(text, color){
+    document.getElementById('conn-status').innerHTML =
+      `<span class="conn-dot" style="background:${color};"></span>${text}`;
+  }
+
+  // ---- Firestore 読み書き ----
+  const settingsRef = db.collection('settings').doc('main');
+  const monthsCol = db.collection('months');
+
+  function saveSettings(){
+    settingsRef.set(settings).then(()=>{
+      const s = document.getElementById('settings-status');
+      s.textContent = '設定を保存しました(相手の端末にも自動反映されます)';
+      setTimeout(()=> s.textContent='', 3000);
+    }).catch(e=>{
+      const s = document.getElementById('settings-status');
+      s.textContent = '保存に失敗しました: '+e.message;
+    });
+  }
+
+  function setMonth(monthKey, data){
+    const withTs = Object.assign({}, data, { _modifiedAt: new Date().toISOString() });
+    return monthsCol.doc(monthKey).set(withTs);
+  }
+  function getMonth(monthKey){ return monthsCache[monthKey] || null; }
+  function listMonths(){ return Object.keys(monthsCache).sort(); }
+
+  function sumBy(filterFn){
+    return settings.categories.filter(filterFn).reduce((a,c)=>a+Number(c.amount||0),0);
+  }
+
+  function computeInstructions(m){
+    const husbandFixed = sumBy(c => c.account==="夫メインバンク" && c.type==="支出");
+    const husbandAuto = sumBy(c => c.account==="夫の投資用口座");
+    const wifePayPayNeed = sumBy(c => c.account==="妻PayPay口座") + Number(settings.childAllowance||0);
+    const wifeFixed = sumBy(c => c.account==="妻メインバンク" && c.type==="支出");
+    const wifeAuto = sumBy(c => c.account==="妻の投資用口座(SBI NISA)");
+
+    const hIncome = Number(m.husbandIncome||0), wIncome = Number(m.wifeIncome||0);
+    const hBalance = Number(m.husbandBalance||0), wBalance = Number(m.wifeBalance||0);
+
+    const F = Math.max(0, wifeFixed - wIncome);
+    const G = Math.max(0, wIncome - wifeFixed);
+    const H = Math.max(0, wifePayPayNeed - G);
+
+    const husbandOutflow = husbandFixed + husbandAuto + F + H;
+    const husbandAvailable = hIncome + hBalance;
+    const wifeOutflow = wifeFixed + wifeAuto + G;
+    const wifeAvailable = wIncome + wBalance;
+
+    const husbandMonthlyBalance = hIncome - husbandOutflow;
+    const wifeMonthlyBalance = wIncome - wifeOutflow;
+
+    return { F, G, H, husbandFixed, husbandAuto, wifePayPayNeed, wifeFixed, wifeAuto,
+      husbandOutflow, husbandAvailable, wifeOutflow, wifeAvailable,
+      husbandMonthlyBalance, wifeMonthlyBalance };
+  }
+
+  function renderInstructions(monthKey){
+    currentMonthKey = monthKey;
+    document.getElementById('instr-month').textContent = monthKey || '(月を選択してください)';
+    const content = document.getElementById('instr-content');
+    if(!monthKey){ content.innerHTML = '<p class="muted">「今月の入力」タブでまず今月のデータを入力してください。</p>'; return; }
+    const m = getMonth(monthKey);
+    if(!m || m.husbandIncome==null || m.wifeIncome==null){
+      content.innerHTML = '<p class="muted">この月はまだ入力されていません。「今月の入力」タブから入力してください。</p>';
+      return;
+    }
+    const r = computeInstructions(m);
+    let html = '';
+    const balCard = (label, val) => {
+      const isDeficit = val < 0;
+      const color = isDeficit ? '#C0503A' : '#2F6F5E';
+      const word = isDeficit ? '赤字' : '黒字';
+      return `<div class="hba-card" style="border-left:4px solid ${color};">
+        <div class="muted">${label}(今月の収支)</div>
+        <div class="big" style="color:${color};">${isDeficit?'−':'+'}${fmt(Math.abs(val))} 万円　<span style="font-size:13px; font-weight:400;">(${word})</span></div>
+      </div>`;
+    };
+    html += balCard('夫メインバンク', r.husbandMonthlyBalance);
+    html += balCard('妻メインバンク', r.wifeMonthlyBalance);
+
+    html += `<div class="hba-action-card"><div class="muted">① 夫メインバンク→妻メインバンク</div><div class="big">${fmt(r.F)} 万円</div></div>`;
+    html += `<div class="hba-action-card"><div class="muted">② 妻メインバンク→妻PayPay(妻自身のアクション)</div><div class="big">${fmt(r.G)} 万円</div></div>`;
+    html += `<div class="hba-action-card"><div class="muted">③ 夫メインバンク→妻PayPay</div><div class="big">${fmt(r.H)} 万円</div></div>`;
+
+    const hOk = r.husbandOutflow <= r.husbandAvailable + 0.05;
+    const wOk = r.wifeOutflow <= r.wifeAvailable + 0.05;
+    let memo = '';
+    if(!hOk){
+      memo = `夫メインバンクの残高が不足しそうです(約${fmt(r.husbandOutflow-r.husbandAvailable)}万円不足)`;
+    } else if(!wOk){
+      memo = `妻メインバンクの残高が不足しそうです(約${fmt(r.wifeOutflow-r.wifeAvailable)}万円不足)`;
+    } else {
+      memo = 'OK。固定費・投資自動引落・上記の振替をすべて行っても、両方の口座で残高は足ります。';
+    }
+    html += `<div class="hba-card"><div class="muted">メモ</div><div style="font-size:13px; margin-top:4px;">${memo}</div></div>`;
+    html += `<div class="hba-card">
+      <div class="muted" style="margin-bottom:6px;">内訳(参考)</div>
+      <div class="hba-row"><span>夫メインバンク固定費</span><span>${fmt(r.husbandFixed)}万円</span></div>
+      <div class="hba-row"><span>夫メインバンク投資自動引落</span><span>${fmt(r.husbandAuto)}万円</span></div>
+      <div class="hba-row"><span>妻メインバンク固定費</span><span>${fmt(r.wifeFixed)}万円</span></div>
+      <div class="hba-row"><span>妻メインバンク投資自動引落</span><span>${fmt(r.wifeAuto)}万円</span></div>
+      <div class="hba-row"><span>妻PayPay必要額(子供手当込み)</span><span>${fmt(r.wifePayPayNeed)}万円</span></div>
+    </div>`;
+    content.innerHTML = html;
+  }
+
+  function renderCatList(){
+    const el = document.getElementById('cat-list');
+    el.innerHTML = settings.categories.map((c, i) => `
+      <div class="hba-card" style="padding:12px;">
+        <div style="display:flex; gap:6px; margin-bottom:8px;">
+          <input type="text" data-i="${i}" data-f="name" value="${c.name}" style="flex:1; width:auto; text-align:left;">
+          <button class="danger" data-del="${i}">削除</button>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+          <input type="number" step="0.1" data-i="${i}" data-f="amount" value="${c.amount}" style="width:70px;">
+          <span class="muted">万円</span>
+          <select data-i="${i}" data-f="type">
+            <option value="支出" ${c.type==="支出"?"selected":""}>支出</option>
+            <option value="積立" ${c.type==="積立"?"selected":""}>積立</option>
+          </select>
+          <select data-i="${i}" data-f="account">
+            ${ACCOUNTS.map(a=>`<option value="${a}" ${c.account===a?"selected":""}>${a}</option>`).join('')}
+          </select>
+        </div>
+        ${c.type==="積立" ? `
+        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:10px; padding-top:10px; border-top:1px dashed #E3E0D4;">
+          <span class="muted">現在の残高</span>
+          <input type="number" step="1" data-i="${i}" data-f="currentBalance" value="${c.currentBalance!=null?c.currentBalance:0}" style="width:70px;">
+          <span class="muted">万円</span>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:8px;">
+          <span class="muted">年利</span>
+          <input type="number" step="0.1" data-i="${i}" data-f="annualReturn" value="${c.annualReturn!=null?c.annualReturn:6}" style="width:60px;">
+          <span class="muted">%</span>
+          <span class="muted" style="margin-left:10px;">最終目標</span>
+          <input type="number" step="1" data-i="${i}" data-f="goalTarget" value="${c.goalTarget!=null?c.goalTarget:''}" placeholder="任意" style="width:70px;">
+          <span class="muted">万円</span>
+        </div>` : ''}
+      </div>
+    `).join('');
+    el.querySelectorAll('input,select').forEach(inp => {
+      inp.addEventListener('change', (e) => {
+        const i = Number(e.target.dataset.i), f = e.target.dataset.f;
+        if(f==="amount" || f==="annualReturn" || f==="currentBalance"){
+          settings.categories[i][f] = parseFloat(e.target.value)||0;
+        } else if(f==="goalTarget"){
+          settings.categories[i][f] = e.target.value==='' ? null : (parseFloat(e.target.value)||0);
+        } else {
+          settings.categories[i][f] = e.target.value;
+        }
+        if(f==="type") renderCatList();
+      });
+    });
+    el.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        settings.categories.splice(Number(e.target.dataset.del), 1);
+        renderCatList();
+      });
+    });
+  }
+
+  function renderHistory(){
+    const months = listMonths();
+    const el = document.getElementById('history-list');
+    if(months.length===0){ el.innerHTML = '<p class="muted">まだ記録がありません。</p>'; return; }
+    let html = '';
+    for(const mk of months.slice().reverse()){
+      const m = getMonth(mk);
+      html += `<div class="hba-card">
+        <div style="display:flex; justify-content:space-between; align-items:center;"><span class="big" style="font-size:16px;">${mk}</span>
+        <button class="secondary" data-view="${mk}">振込指示を見る</button></div>
+        <div class="muted" style="margin-top:6px;">夫手取り${fmt(m.husbandIncome)}万円／妻手取り${fmt(m.wifeIncome)}万円</div>
+      </div>`;
+    }
+    el.innerHTML = html;
+    el.querySelectorAll('[data-view]').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        switchTab('instr');
+        renderInstructions(e.target.dataset.view);
+      });
+    });
+  }
+
+  function switchTab(name){
+    document.querySelectorAll('.hba-tab').forEach(t=>t.classList.toggle('active', t.dataset.page===name));
+    document.querySelectorAll('.hba-page').forEach(p=>p.classList.toggle('active', p.id==='page-'+name));
+  }
+
+  function futureValue(monthly, annualRatePct, months, principal){
+    const r = (annualRatePct/100)/12;
+    const p = principal || 0;
+    if(r === 0) return p + monthly*months;
+    return p*(1+r)**months + monthly*(((1+r)**months - 1)/r);
+  }
+  function monthsToTarget(monthly, annualRatePct, target, principal){
+    const p = principal || 0;
+    if(p >= target) return 0;
+    if(monthly<=0) return null;
+    const r = (annualRatePct/100)/12;
+    if(r === 0) return (target-p)/monthly;
+    let months = 0, balance = p;
+    const maxMonths = 1200;
+    while(balance < target && months < maxMonths){ balance = balance*(1+r) + monthly; months++; }
+    return months >= maxMonths ? null : months;
+  }
+
+  function renderSim(){
+    const el = document.getElementById('sim-list');
+    const goalCats = settings.categories.filter(c=>c.type==="積立");
+    if(goalCats.length===0){ el.innerHTML = '<p class="muted">積立系のカテゴリがありません。「設定」タブで種別を積立にしてください。</p>'; return; }
+    const horizons = [5,10,20,30];
+    let html = '';
+    let totalByHorizon = [0,0,0,0];
+    goalCats.forEach((c) => {
+      const rate = c.annualReturn!=null ? c.annualReturn : 6;
+      const principal = c.currentBalance || 0;
+      const fvs = horizons.map(y => futureValue(c.amount, rate, y*12, principal));
+      fvs.forEach((v,i)=> totalByHorizon[i]+=v);
+      let goalLine = '';
+      if(c.goalTarget){
+        const m = monthsToTarget(c.amount, rate, c.goalTarget, principal);
+        goalLine = m!=null
+          ? `<div class="muted" style="margin-top:8px;">目標${c.goalTarget}万円まで約${(m/12).toFixed(1)}年</div>`
+          : `<div class="muted" style="margin-top:8px;">現在の月額では目標に到達しません</div>`;
+      }
+      html += `<div class="hba-card">
+        <div style="display:flex; justify-content:space-between; align-items:baseline;">
+          <span style="font-weight:700;">${c.name}</span>
+          <span class="pill">現在${principal}万＋月${c.amount}万・年利${rate}%</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:13px;">
+          ${horizons.map((y,i)=>`<div style="text-align:center;"><div class="muted">${y}年後</div><div style="font-weight:700;">${fmt(fvs[i])}万円</div></div>`).join('')}
+        </div>
+        ${goalLine}
+      </div>`;
+    });
+    html += `<div class="hba-action-card">
+      <div style="font-weight:700; margin-bottom:10px;">積立合計(全カテゴリ)</div>
+      <div style="display:flex; justify-content:space-between; font-size:13px;">
+        ${horizons.map((y,i)=>`<div style="text-align:center;"><div class="muted">${y}年後</div><div style="font-weight:700;">${fmt(totalByHorizon[i])}万円</div></div>`).join('')}
+      </div>
+    </div>`;
+    el.innerHTML = html;
+  }
+
+  document.querySelectorAll('.hba-tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      switchTab(tab.dataset.page);
+      if(tab.dataset.page==='instr'){
+        const mk = document.getElementById('in-month').value || thisMonthStr();
+        renderInstructions(mk);
+      }
+      if(tab.dataset.page==='history') renderHistory();
+      if(tab.dataset.page==='sim') renderSim();
+      if(tab.dataset.page==='settings'){
+        document.getElementById('set-h-default').value = settings.husbandIncomeDefault;
+        document.getElementById('set-child').value = settings.childAllowance;
+        renderCatList();
+      }
+    });
+  });
+
+  document.getElementById('add-cat-btn').addEventListener('click', ()=>{
+    settings.categories.push({id:'custom_'+Date.now(), name:'新しいカテゴリ', amount:0, type:'支出', account:ACCOUNTS[0]});
+    renderCatList();
+  });
+  document.getElementById('save-settings-btn').addEventListener('click', ()=>{
+    settings.husbandIncomeDefault = parseFloat(document.getElementById('set-h-default').value)||0;
+    settings.childAllowance = parseFloat(document.getElementById('set-child').value)||0;
+    saveSettings();
+  });
+
+  document.getElementById('save-month-btn').addEventListener('click', ()=>{
+    const monthKey = document.getElementById('in-month').value;
+    if(!monthKey){ alert('年月を選択してください'); return; }
+    const data = {
+      husbandIncome: parseFloat(document.getElementById('in-h-income').value)||0,
+      wifeIncome: parseFloat(document.getElementById('in-w-income').value)||0,
+      husbandBalance: parseFloat(document.getElementById('in-h-balance').value)||0,
+      wifeBalance: parseFloat(document.getElementById('in-w-balance').value)||0,
+    };
+    setMonth(monthKey, data).then(()=>{
+      const s = document.getElementById('save-status');
+      s.textContent = monthKey+' を保存しました(相手にも自動反映されます)';
+      setTimeout(()=> s.textContent='', 3000);
+      switchTab('instr');
+      renderInstructions(monthKey);
+    }).catch(e=>{
+      document.getElementById('save-status').textContent = '保存に失敗しました: '+e.message;
+    });
+  });
+
+  // ---- 起動フロー: 匿名認証 → Firestoreのリアルタイム購読 ----
+  function tryStartApp(){
+    if(!settingsLoaded || !monthsLoaded || appStarted) return;
+    appStarted = true;
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('app-root').style.display = 'block';
+    setConn('リアルタイム同期中', '#2F6F5E');
+
+    const mk = thisMonthStr();
+    document.getElementById('in-month').value = mk;
+    document.getElementById('in-h-income').value = settings.husbandIncomeDefault;
+    const existing = getMonth(mk);
+    if(existing){
+      document.getElementById('in-h-income').value = existing.husbandIncome;
+      document.getElementById('in-w-income').value = existing.wifeIncome;
+      document.getElementById('in-h-balance').value = existing.husbandBalance;
+      document.getElementById('in-w-balance').value = existing.wifeBalance;
+    }
+    renderInstructions(existing ? mk : null);
+  }
+
+  function onRemoteUpdate(){
+    if(!appStarted) return;
+    const active = document.querySelector('.hba-tab.active').dataset.page;
+    if(active==='instr') renderInstructions(currentMonthKey || document.getElementById('in-month').value);
+    if(active==='history') renderHistory();
+    if(active==='sim') renderSim();
+    if(active==='settings'){
+      document.getElementById('set-h-default').value = settings.husbandIncomeDefault;
+      document.getElementById('set-child').value = settings.childAllowance;
+      renderCatList();
+    }
+  }
+
+  auth.onAuthStateChanged(user => {
+    if(!user){ auth.signInAnonymously().catch(e=>setConn('接続エラー: '+e.message, '#C0503A')); return; }
+
+    settingsRef.onSnapshot(doc => {
+      if(doc.exists){
+        settings = doc.data();
+      } else {
+        settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+        settingsRef.set(settings); // 初回だけ初期値を書き込む
+      }
+      if(settings.categories) settings.categories.forEach(c=>{ if(c.type==="積立" && c.currentBalance==null) c.currentBalance = 0; });
+      settingsLoaded = true;
+      tryStartApp();
+      onRemoteUpdate();
+    }, e => setConn('接続エラー: '+e.message, '#C0503A'));
+
+    monthsCol.onSnapshot(snap => {
+      monthsCache = {};
+      snap.forEach(d => { monthsCache[d.id] = d.data(); });
+      monthsLoaded = true;
+      tryStartApp();
+      onRemoteUpdate();
+    }, e => setConn('接続エラー: '+e.message, '#C0503A'));
+  });
+})();
+</script>
+</body>
+</html>
