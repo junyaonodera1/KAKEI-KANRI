@@ -76,9 +76,15 @@
     background: #fff; color: #1E2430; border: 1px solid #D8D5C8; border-radius: 999px;
     padding: 7px 14px; font-size: 12px; cursor: pointer;
   }
-  button.danger {
-    background: #fff; color: #C0503A; border: 1px solid #EDCFC5; border-radius: 999px;
-    padding: 5px 12px; font-size: 11px; cursor: pointer;
+  button.icon-delete {
+    background: #F7F5EF; color: #B7B2A2; border: none; border-radius: 50%;
+    width: 30px; height: 30px; min-width: 30px; display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0; flex-shrink: 0;
+  }
+  button.icon-delete:hover, button.icon-delete:active { background: #F7E7E2; color: #C0503A; }
+  .payer-chip {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 4px 3px 8px;
+    background: #F2F0E9; border-radius: 999px; color: #6B6656;
   }
   .muted { color: #A6A28F; font-size: 12px; }
   .big { font-size: 23px; font-weight: 700; letter-spacing: 0.01em; }
@@ -173,26 +179,26 @@
 
   const ACCOUNTS = ["夫メインバンク","妻メインバンク","妻PayPay口座","夫の投資用口座","妻の投資用口座(SBI NISA)"];
   const DEFAULT_CATS = [
-    {id:"loan", name:"住宅ローン返済", amount:18.8, type:"支出", account:"夫メインバンク"},
-    {id:"childcare_fee", name:"保育料(定額)", amount:6.3, type:"支出", account:"夫メインバンク"},
-    {id:"insurance_husband", name:"夫の保険料", amount:1.1, type:"支出", account:"夫メインバンク"},
-    {id:"phone_husband", name:"夫のスマホ代", amount:0.75, type:"支出", account:"夫メインバンク"},
-    {id:"husband_allowance", name:"夫のお小遣い", amount:3.0, type:"支出", account:"夫メインバンク"},
-    {id:"insurance_wife", name:"妻の保険料", amount:1.1, type:"支出", account:"妻メインバンク"},
-    {id:"phone_wife", name:"妻のスマホ代", amount:0.75, type:"支出", account:"妻メインバンク"},
-    {id:"wife_allowance", name:"妻のお小遣い", amount:5.0, type:"支出", account:"妻メインバンク"},
-    {id:"food", name:"食費", amount:10.5, type:"支出", account:"妻PayPay口座"},
-    {id:"daily_goods", name:"日用品", amount:2.0, type:"支出", account:"妻PayPay口座"},
-    {id:"childcare_daily", name:"育児(おむつ等)", amount:2.0, type:"支出", account:"妻PayPay口座"},
-    {id:"transport", name:"交通", amount:3.2, type:"支出", account:"妻PayPay口座"},
-    {id:"education_daily", name:"教育(日々)", amount:1.0, type:"支出", account:"妻PayPay口座"},
-    {id:"reserve", name:"予備費", amount:2.5, type:"支出", account:"妻PayPay口座"},
-    {id:"leisure", name:"レジャー", amount:2.0, type:"支出", account:"妻PayPay口座"},
-    {id:"living_other", name:"生活費(水道光熱・被服)", amount:4.0, type:"支出", account:"妻PayPay口座"},
-    {id:"retire_invest", name:"老後資金(NISA+iDeCo)", amount:1.5, type:"積立", account:"夫の投資用口座", annualReturn:6, goalTarget:null, currentBalance:0},
-    {id:"loan_payoff_fund", name:"ローン完済準備金", amount:1.5, type:"積立", account:"夫の投資用口座", annualReturn:6, goalTarget:1303, currentBalance:0},
-    {id:"repair_fund", name:"住宅修繕費", amount:1.5, type:"積立", account:"夫の投資用口座", annualReturn:6, goalTarget:180, currentBalance:0},
-    {id:"education_fund", name:"教育資金積立(子2人分)", amount:3.0, type:"積立", account:"妻の投資用口座(SBI NISA)", annualReturn:6, goalTarget:800, currentBalance:0},
+    {id:"loan", name:"住宅ローン返済", amount:18.8, type:"支出", account:"夫メインバンク", payer:"夫婦"},
+    {id:"childcare_fee", name:"保育料(定額)", amount:6.3, type:"支出", account:"夫メインバンク", payer:"夫婦"},
+    {id:"insurance_husband", name:"夫の保険料", amount:1.1, type:"支出", account:"夫メインバンク", payer:"夫"},
+    {id:"phone_husband", name:"夫のスマホ代", amount:0.75, type:"支出", account:"夫メインバンク", payer:"夫"},
+    {id:"husband_allowance", name:"夫のお小遣い", amount:3.0, type:"支出", account:"夫メインバンク", payer:"夫"},
+    {id:"insurance_wife", name:"妻の保険料", amount:1.1, type:"支出", account:"妻メインバンク", payer:"妻"},
+    {id:"phone_wife", name:"妻のスマホ代", amount:0.75, type:"支出", account:"妻メインバンク", payer:"妻"},
+    {id:"wife_allowance", name:"妻のお小遣い", amount:5.0, type:"支出", account:"妻メインバンク", payer:"妻"},
+    {id:"food", name:"食費", amount:10.5, type:"支出", account:"妻PayPay口座", payer:"夫婦"},
+    {id:"daily_goods", name:"日用品", amount:2.0, type:"支出", account:"妻PayPay口座", payer:"夫婦"},
+    {id:"childcare_daily", name:"育児(おむつ等)", amount:2.0, type:"支出", account:"妻PayPay口座", payer:"夫婦"},
+    {id:"transport", name:"交通", amount:3.2, type:"支出", account:"妻PayPay口座", payer:"夫婦"},
+    {id:"education_daily", name:"教育(日々)", amount:1.0, type:"支出", account:"妻PayPay口座", payer:"夫婦"},
+    {id:"reserve", name:"予備費", amount:2.5, type:"支出", account:"妻PayPay口座", payer:"夫婦"},
+    {id:"leisure", name:"レジャー", amount:2.0, type:"支出", account:"妻PayPay口座", payer:"夫婦"},
+    {id:"living_other", name:"生活費(水道光熱・被服)", amount:4.0, type:"支出", account:"妻PayPay口座", payer:"夫婦"},
+    {id:"retire_invest", name:"老後資金(NISA+iDeCo)", amount:1.5, type:"積立", account:"夫の投資用口座", annualReturn:6, goalTarget:null, currentBalance:0, payer:"夫婦"},
+    {id:"loan_payoff_fund", name:"ローン完済準備金", amount:1.5, type:"積立", account:"夫の投資用口座", annualReturn:6, goalTarget:1303, currentBalance:0, payer:"夫婦"},
+    {id:"repair_fund", name:"住宅修繕費", amount:1.5, type:"積立", account:"夫の投資用口座", annualReturn:6, goalTarget:180, currentBalance:0, payer:"夫婦"},
+    {id:"education_fund", name:"教育資金積立(子2人分)", amount:3.0, type:"積立", account:"妻の投資用口座(SBI NISA)", annualReturn:6, goalTarget:800, currentBalance:0, payer:"夫婦"},
   ];
   const DEFAULT_SETTINGS = { husbandIncomeDefault: 60, childAllowance: 1.5, categories: DEFAULT_CATS };
 
@@ -245,21 +251,44 @@
     const hIncome = Number(m.husbandIncome||0), wIncome = Number(m.wifeIncome||0);
     const hBalance = Number(m.husbandBalance||0), wBalance = Number(m.wifeBalance||0);
 
-    const F = Math.max(0, wifeFixed - wIncome);
-    const G = Math.max(0, wIncome - wifeFixed);
-    const H = Math.max(0, wifePayPayNeed - G);
+    // 手取り比率
+    const totalIncome = hIncome + wIncome;
+    const wRatio = totalIncome > 0 ? wIncome/totalIncome : 0.5;
+    const hRatio = 1 - wRatio;
 
-    const husbandOutflow = husbandFixed + husbandAuto + F + H;
-    const husbandAvailable = hIncome + hBalance;
-    const wifeOutflow = wifeFixed + wifeAuto + G;
-    const wifeAvailable = wIncome + wBalance;
+    // 「夫婦」負担カテゴリの総額(子供手当も夫婦の共有分として含める)
+    const childAllowance = Number(settings.childAllowance||0);
+    const sharedSum = sumBy(c => c.payer === "夫婦");
+    const totalShared = sharedSum + childAllowance;
+    const idealHusbandShare = totalShared * hRatio;
+    const idealWifeShare = totalShared * wRatio;
+
+    // 夫婦負担のうち、既にどちらかの口座から構造的に出ていく分
+    const structHusband = sumBy(c => c.payer==="夫婦" && (c.account==="夫メインバンク" || c.account==="夫の投資用口座"));
+    const structWife = sumBy(c => c.payer==="夫婦" && (c.account==="妻メインバンク" || c.account==="妻の投資用口座(SBI NISA)"));
+    const structPayPay = sumBy(c => c.payer==="夫婦" && c.account==="妻PayPay口座") + childAllowance;
+
+    // 妻のPayPay拠出額は「公正な負担額 - 既に構造的に払っている分」。PayPayの必要額を超えない範囲で
+    const G_raw = idealWifeShare - structWife;
+    const G = Math.min(Math.max(0, G_raw), structPayPay);
+    const H = Math.max(0, structPayPay - G);
+    // 清算(せいさん): PayPayの範囲では吸収しきれない公正負担の差額。正=妻→夫、負=夫→妻
+    const settlement = G_raw - G;
+
+    const F = Math.max(0, (wifeFixed + wifeAuto + G + settlement) - wIncome);
+
+    const husbandOutflow = husbandFixed + husbandAuto + H + Math.max(0, -settlement);
+    const husbandAvailable = hIncome + hBalance + Math.max(0, settlement);
+    const wifeOutflow = wifeFixed + wifeAuto + G + Math.max(0, settlement);
+    const wifeAvailable = wIncome + wBalance + Math.max(0, -settlement);
 
     const husbandMonthlyBalance = hIncome - husbandOutflow;
     const wifeMonthlyBalance = wIncome - wifeOutflow;
 
-    return { F, G, H, husbandFixed, husbandAuto, wifePayPayNeed, wifeFixed, wifeAuto,
+    return { F, G, H, settlement, husbandFixed, husbandAuto, wifePayPayNeed, wifeFixed, wifeAuto,
       husbandOutflow, husbandAvailable, wifeOutflow, wifeAvailable,
-      husbandMonthlyBalance, wifeMonthlyBalance };
+      husbandMonthlyBalance, wifeMonthlyBalance, wRatio, hRatio,
+      totalShared, idealHusbandShare, idealWifeShare, structHusband, structWife, structPayPay };
   }
 
   function renderInstructions(monthKey){
@@ -289,6 +318,13 @@
     html += `<div class="hba-action-card"><div class="muted">① 夫メインバンク→妻メインバンク</div><div class="big">${fmt(r.F)} 万円</div></div>`;
     html += `<div class="hba-action-card"><div class="muted">② 妻メインバンク→妻PayPay(妻自身のアクション)</div><div class="big">${fmt(r.G)} 万円</div></div>`;
     html += `<div class="hba-action-card"><div class="muted">③ 夫メインバンク→妻PayPay</div><div class="big">${fmt(r.H)} 万円</div></div>`;
+    if(Math.abs(r.settlement) > 0.05){
+      if(r.settlement > 0){
+        html += `<div class="hba-action-card" style="border-left-color:#A9812E;"><div class="muted">④ 清算：妻メインバンク→夫メインバンク</div><div class="big">${fmt(r.settlement)} 万円</div></div>`;
+      } else {
+        html += `<div class="hba-action-card" style="border-left-color:#A9812E;"><div class="muted">④ 清算：夫メインバンク→妻メインバンク</div><div class="big">${fmt(-r.settlement)} 万円</div></div>`;
+      }
+    }
 
     const hOk = r.husbandOutflow <= r.husbandAvailable + 0.05;
     const wOk = r.wifeOutflow <= r.wifeAvailable + 0.05;
@@ -302,6 +338,15 @@
     }
     html += `<div class="hba-card"><div class="muted">メモ</div><div style="font-size:13px; margin-top:4px;">${memo}</div></div>`;
     html += `<div class="hba-card">
+      <div class="muted" style="margin-bottom:6px;">手取り比率での按分(参考)</div>
+      <div class="hba-row"><span>手取り比率(夫:妻)</span><span>${(r.hRatio*100).toFixed(0)}% : ${(r.wRatio*100).toFixed(0)}%</span></div>
+      <div class="hba-row"><span>夫婦の共有支出 合計</span><span>${fmt(r.totalShared)}万円</span></div>
+      <div class="hba-row"><span>夫の公正な負担額</span><span>${fmt(r.idealHusbandShare)}万円</span></div>
+      <div class="hba-row"><span>妻の公正な負担額</span><span>${fmt(r.idealWifeShare)}万円</span></div>
+      <div class="hba-row"><span>夫が構造的に既に支払う分(ローン等)</span><span>${fmt(r.structHusband)}万円</span></div>
+      <div class="hba-row"><span>妻が構造的に既に支払う分</span><span>${fmt(r.structWife)}万円</span></div>
+    </div>
+    <div class="hba-card">
       <div class="muted" style="margin-bottom:6px;">内訳(参考)</div>
       <div class="hba-row"><span>夫メインバンク固定費</span><span>${fmt(r.husbandFixed)}万円</span></div>
       <div class="hba-row"><span>夫メインバンク投資自動引落</span><span>${fmt(r.husbandAuto)}万円</span></div>
@@ -314,11 +359,12 @@
 
   function renderCatList(){
     const el = document.getElementById('cat-list');
+    const trashIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>`;
     el.innerHTML = settings.categories.map((c, i) => `
       <div class="hba-card" style="padding:12px;">
-        <div style="display:flex; gap:6px; margin-bottom:8px;">
+        <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;">
           <input type="text" data-i="${i}" data-f="name" value="${c.name}" style="flex:1; width:auto; text-align:left;">
-          <button class="danger" data-del="${i}">削除</button>
+          <button class="icon-delete" data-del="${i}" aria-label="削除" title="このカテゴリを削除">${trashIcon}</button>
         </div>
         <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
           <input type="number" step="0.1" data-i="${i}" data-f="amount" value="${c.amount}" style="width:70px;">
@@ -327,9 +373,20 @@
             <option value="支出" ${c.type==="支出"?"selected":""}>支出</option>
             <option value="積立" ${c.type==="積立"?"selected":""}>積立</option>
           </select>
-          <select data-i="${i}" data-f="account">
-            ${ACCOUNTS.map(a=>`<option value="${a}" ${c.account===a?"selected":""}>${a}</option>`).join('')}
-          </select>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
+          <span class="payer-chip">負担
+            <select data-i="${i}" data-f="payer" style="border:none; background:transparent; padding:0; font-size:11px; color:#1E2430;">
+              <option value="夫" ${c.payer==="夫"?"selected":""}>夫</option>
+              <option value="妻" ${c.payer==="妻"?"selected":""}>妻</option>
+              <option value="夫婦" ${(!c.payer||c.payer==="夫婦")?"selected":""}>夫婦</option>
+            </select>
+          </span>
+          <span class="payer-chip">引落
+            <select data-i="${i}" data-f="account" style="border:none; background:transparent; padding:0; font-size:11px; color:#1E2430;">
+              ${ACCOUNTS.map(a=>`<option value="${a}" ${c.account===a?"selected":""}>${a}</option>`).join('')}
+            </select>
+          </span>
         </div>
         ${c.type==="積立" ? `
         <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-top:10px; padding-top:10px; border-top:1px dashed #E3E0D4;">
@@ -362,8 +419,11 @@
     });
     el.querySelectorAll('[data-del]').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        settings.categories.splice(Number(e.target.dataset.del), 1);
-        renderCatList();
+        const i = Number(e.currentTarget.dataset.del);
+        if(confirm(`「${settings.categories[i].name}」を削除しますか？`)){
+          settings.categories.splice(i, 1);
+          renderCatList();
+        }
       });
     });
   }
@@ -470,7 +530,7 @@
   });
 
   document.getElementById('add-cat-btn').addEventListener('click', ()=>{
-    settings.categories.push({id:'custom_'+Date.now(), name:'新しいカテゴリ', amount:0, type:'支出', account:ACCOUNTS[0]});
+    settings.categories.push({id:'custom_'+Date.now(), name:'新しいカテゴリ', amount:0, type:'支出', account:ACCOUNTS[0], payer:'夫婦'});
     renderCatList();
   });
   document.getElementById('save-settings-btn').addEventListener('click', ()=>{
@@ -543,7 +603,10 @@
         settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
         settingsRef.set(settings); // 初回だけ初期値を書き込む
       }
-      if(settings.categories) settings.categories.forEach(c=>{ if(c.type==="積立" && c.currentBalance==null) c.currentBalance = 0; });
+      if(settings.categories) settings.categories.forEach(c=>{
+        if(c.type==="積立" && c.currentBalance==null) c.currentBalance = 0;
+        if(!c.payer) c.payer = '夫婦';
+      });
       settingsLoaded = true;
       tryStartApp();
       onRemoteUpdate();
