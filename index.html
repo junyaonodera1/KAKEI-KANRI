@@ -22,6 +22,15 @@
   input, select { font-variant-numeric: tabular-nums; }
 
   .app-header { text-align: center; margin-bottom: 18px; }
+  .home-photo-wrap { margin-bottom: 14px; }
+  .home-photo {
+    width: 100%; max-width: 420px; height: 160px; object-fit: cover;
+    border-radius: 20px; box-shadow: 0 6px 20px rgba(30,36,48,0.15);
+    border: 3px solid #fff;
+  }
+  .home-message {
+    font-size: 12px; color: #7A8B7C; margin-top: 8px; font-style: italic;
+  }
   .app-header h1 {
     font-size: 24px; margin: 0 0 4px; letter-spacing: 0.02em;
     background: linear-gradient(90deg, #1E2430, #2F6F5E);
@@ -96,8 +105,12 @@
 <body>
 <div class="hba">
   <div class="app-header">
+    <div class="home-photo-wrap" id="home-photo-wrap" style="display:none;">
+      <img class="home-photo" id="home-photo" src="" alt="家族の写真">
+    </div>
     <h1>わが家のお金アプリ</h1>
     <div class="sub" id="conn-status"><span class="conn-dot" style="background:#D8B24A;"></span>接続中…</div>
+    <div class="home-message" id="home-message"></div>
   </div>
 
   <div id="app-root" style="display:none;">
@@ -133,6 +146,15 @@
 
     <!-- 設定ページ -->
     <div class="hba-page" id="page-settings">
+      <div class="hba-card">
+        <div style="font-weight:700; margin-bottom:8px;">ホーム画面の写真</div>
+        <div id="settings-photo-preview" style="margin-bottom:10px;"></div>
+        <input type="file" id="photo-input" accept="image/*" style="width:100%; font-size:12px;">
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <button class="secondary" id="remove-photo-btn" style="flex:1;">写真を削除</button>
+        </div>
+        <div class="muted" style="margin-top:8px;">アップロードすると自動で縮小され、相手の端末にも表示されます。</div>
+      </div>
       <div class="hba-card">
         <div class="hba-row"><span>夫の手取り 目安(万円)</span><input type="number" step="0.1" id="set-h-default"></div>
         <div class="hba-row"><span>子供手当 月額(万円)</span><input type="number" step="0.1" id="set-child"></div>
@@ -200,7 +222,7 @@
     {id:"repair_fund", name:"住宅修繕費", amount:1.5, type:"積立", account:"夫の投資用口座", annualReturn:6, goalTarget:180, currentBalance:0, payer:"夫婦"},
     {id:"education_fund", name:"教育資金積立(子2人分)", amount:3.0, type:"積立", account:"妻の投資用口座(SBI NISA)", annualReturn:6, goalTarget:800, currentBalance:0, payer:"夫婦"},
   ];
-  const DEFAULT_SETTINGS = { husbandIncomeDefault: 60, childAllowance: 1.5, categories: DEFAULT_CATS };
+  const DEFAULT_SETTINGS = { husbandIncomeDefault: 60, childAllowance: 1.5, homePhoto: null, categories: DEFAULT_CATS };
 
   let settings = null;
   let monthsCache = {};
@@ -214,6 +236,72 @@
     document.getElementById('conn-status').innerHTML =
       `<span class="conn-dot" style="background:${color};"></span>${text}`;
   }
+
+  // ---- ホーム画面の写真・ひとことメッセージ ----
+  const HOME_MESSAGES = [
+    "今日もコツコツ、未来の家族のために。",
+    "小さな積み重ねが、大きな安心になる。",
+    "お金の話も、家族の会話のひとつ。",
+    "今月もお疲れさまでした。",
+    "先取り貯蓄、今日も順調。",
+    "子どもの未来に、今日も一歩。",
+    "夫婦で見る数字は、心強い味方。",
+  ];
+  function renderHomeMessage(){
+    const idx = new Date().getDate() % HOME_MESSAGES.length;
+    document.getElementById('home-message').textContent = HOME_MESSAGES[idx];
+  }
+  function renderHomePhoto(){
+    const wrap = document.getElementById('home-photo-wrap');
+    const img = document.getElementById('home-photo');
+    const preview = document.getElementById('settings-photo-preview');
+    if(settings.homePhoto){
+      img.src = settings.homePhoto;
+      wrap.style.display = 'block';
+      if(preview) preview.innerHTML = `<img src="${settings.homePhoto}" style="width:100%; max-width:280px; border-radius:14px; display:block;">`;
+    } else {
+      wrap.style.display = 'none';
+      if(preview) preview.innerHTML = `<div class="muted">まだ写真が設定されていません</div>`;
+    }
+  }
+  function resizeImageFile(file, maxWidth){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = Math.min(1, maxWidth / img.width);
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', 0.75));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  document.getElementById('photo-input').addEventListener('change', async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    try {
+      const dataUrl = await resizeImageFile(file, 800);
+      settings.homePhoto = dataUrl;
+      saveSettings();
+      renderHomePhoto();
+    } catch(err){
+      alert('写真の読み込みに失敗しました');
+    }
+  });
+  document.getElementById('remove-photo-btn').addEventListener('click', ()=>{
+    settings.homePhoto = null;
+    saveSettings();
+    renderHomePhoto();
+  });
 
   // ---- Firestore 読み書き ----
   const settingsRef = db.collection('settings').doc('main');
@@ -525,6 +613,7 @@
         document.getElementById('set-h-default').value = settings.husbandIncomeDefault;
         document.getElementById('set-child').value = settings.childAllowance;
         renderCatList();
+        renderHomePhoto();
       }
     });
   });
@@ -566,6 +655,8 @@
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('app-root').style.display = 'block';
     setConn('リアルタイム同期中', '#2F6F5E');
+    renderHomePhoto();
+    renderHomeMessage();
 
     const mk = thisMonthStr();
     document.getElementById('in-month').value = mk;
@@ -582,6 +673,7 @@
 
   function onRemoteUpdate(){
     if(!appStarted) return;
+    renderHomePhoto();
     const active = document.querySelector('.hba-tab.active').dataset.page;
     if(active==='instr') renderInstructions(currentMonthKey || document.getElementById('in-month').value);
     if(active==='history') renderHistory();
