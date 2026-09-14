@@ -6,120 +6,144 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>わが家のお金アプリ</title>
+<title>小野寺家の家計</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap');
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; padding: 0; }
   body {
-    font-family: 'Noto Sans JP', sans-serif; color: #1E2430;
-    background: linear-gradient(180deg, #FBFAF7 0%, #F2F0E9 100%);
+    font-family: 'Noto Sans JP', sans-serif; color: #3D4A2A;
+    background: linear-gradient(180deg, #FFFDF3 0%, #EFF7DE 45%, #E3F3D6 100%);
     min-height: 100vh;
   }
   .hba { max-width: 480px; margin: 0 auto; padding: 20px 16px 60px; }
-  .hba h1, .hba h2, .num { font-family: 'Shippori Mincho', serif; }
-  input, select, button { font-family: inherit; }
+  .hba h1, .hba h2, .num { font-family: 'M PLUS Rounded 1c', 'Noto Sans JP', sans-serif; }
+  input, select, button { font-family: 'M PLUS Rounded 1c', 'Noto Sans JP', sans-serif; }
   input, select { font-variant-numeric: tabular-nums; }
 
   .app-header { text-align: center; margin-bottom: 18px; }
   .home-photo-wrap { margin-bottom: 14px; }
-  .home-photo {
-    width: 100%; max-width: 420px; height: 160px; object-fit: cover;
-    border-radius: 20px; box-shadow: 0 6px 20px rgba(30,36,48,0.15);
-    border: 3px solid #fff;
+  .home-photo-frame {
+    width: 100%; max-width: 380px; padding: 10px 10px 22px; border-radius: 16px;
+    box-shadow: 0 10px 24px rgba(139,195,74,0.3), 0 0 0 1px rgba(255,255,255,0.6) inset;
+    border: none; overflow: hidden;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto; transform: rotate(-1.5deg); position: relative;
+  }
+  .home-photo-frame::after {
+    content: "🌼"; position: absolute; top: -10px; right: -6px; font-size: 26px;
+    transform: rotate(15deg);
+  }
+  .home-photo-inner {
+    width: 100%; height: 170px; border-radius: 10px; overflow: hidden;
+    background: linear-gradient(135deg, #DCEDC8, #FFF9C4);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .home-photo { width: 100%; height: 100%; object-fit: contain; }
+  .check-row { display:flex; align-items:center; gap:10px; }
+  .check-row input[type=checkbox] {
+    width: 22px; height: 22px; accent-color: #7CB342; cursor: pointer; flex-shrink: 0;
   }
   .home-message {
-    font-size: 12px; color: #7A8B7C; margin-top: 8px; font-style: italic;
+    font-size: 12px; color: #6E8B3D; margin-top: 8px; font-weight: 700;
   }
   .app-header h1 {
-    font-size: 24px; margin: 0 0 4px; letter-spacing: 0.02em;
-    background: linear-gradient(90deg, #1E2430, #2F6F5E);
+    font-size: 26px; margin: 0 0 4px; letter-spacing: 0.02em; font-weight: 800;
+    background: linear-gradient(90deg, #7CB342, #C0CA33, #FBC02D);
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
-  .app-header .sub { font-size: 11px; color: #A6A28F; }
-  .conn-dot { display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:4px; }
+  .app-header .sub { font-size: 11px; color: #8FA968; font-weight: 700; }
+  .conn-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:4px; }
 
   .hba-tabs {
-    display: flex; flex-wrap: wrap; gap: 6px; background: #EFEDE4; border-radius: 16px;
-    padding: 6px; margin-bottom: 18px;
+    display: flex; flex-wrap: wrap; gap: 6px; background: #fff; border-radius: 20px;
+    padding: 6px; margin-bottom: 18px; box-shadow: 0 3px 12px rgba(139,195,74,0.18);
   }
   .hba-tab {
-    flex: 1 1 30%; text-align: center; padding: 10px 6px; font-size: 12px;
-    cursor: pointer; color: #8B8776; border-radius: 12px; white-space: nowrap;
+    flex: 1 1 30%; text-align: center; padding: 10px 6px; font-size: 12px; font-weight: 700;
+    cursor: pointer; color: #93A876; border-radius: 14px; white-space: nowrap;
     transition: all 0.2s ease;
   }
-  .hba-tab.active { color: #fff; background: #1E2430; font-weight: 700; border-radius: 12px; box-shadow: 0 2px 6px rgba(30,36,48,0.25); }
+  .hba-tab.active {
+    color: #fff; background: linear-gradient(135deg, #9CCC65, #7CB342);
+    border-radius: 14px; box-shadow: 0 3px 8px rgba(124,179,66,0.4);
+  }
   .hba-page { display: none; animation: fadeIn 0.25s ease; }
   .hba-page.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
   .hba-card {
-    background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px;
-    box-shadow: 0 2px 10px rgba(30,36,48,0.06); border: 1px solid #F0EEE5;
+    background: #fff; border-radius: 20px; padding: 16px; margin-bottom: 12px;
+    box-shadow: 0 3px 14px rgba(139,195,74,0.14); border: 2px solid #F1F8E4;
   }
   .hba-action-card {
-    background: linear-gradient(135deg, #EEF5F1, #E6F0EA); border-left: 4px solid #2F6F5E;
-    border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 10px rgba(47,111,94,0.08);
+    background: linear-gradient(135deg, #F1F8E9, #FFFDE7); border-left: 5px solid #9CCC65;
+    border-radius: 18px; padding: 16px; margin-bottom: 12px; box-shadow: 0 3px 14px rgba(139,195,74,0.16);
   }
   .hba-row {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 0; border-bottom: 1px solid #F2F0E9; font-size: 14px; gap: 8px;
+    padding: 10px 0; border-bottom: 1px dashed #E8F2D8; font-size: 14px; gap: 8px;
   }
   .hba-row:last-child { border-bottom: none; }
 
   input[type=number], input[type=text], input[type=month] {
-    border: 1px solid #E3E0D4; border-radius: 8px; padding: 7px 10px; font-size: 14px;
-    width: 100px; text-align: right; background: #FCFBF8; transition: border-color 0.15s;
+    border: 2px solid #E3F0CE; border-radius: 12px; padding: 7px 10px; font-size: 14px;
+    width: 100px; text-align: right; background: #FBFEF6; transition: border-color 0.15s;
   }
-  input:focus, select:focus { outline: none; border-color: #2F6F5E; }
-  select { border: 1px solid #E3E0D4; border-radius: 8px; padding: 7px; font-size: 13px; background: #FCFBF8; }
+  input:focus, select:focus { outline: none; border-color: #9CCC65; }
+  select { border: 2px solid #E3F0CE; border-radius: 12px; padding: 7px; font-size: 13px; background: #FBFEF6; }
 
   button { transition: all 0.15s ease; }
   button.primary {
-    width: 100%; background: #1E2430; color: #fff; border: none; border-radius: 999px;
-    padding: 13px; font-size: 14px; font-weight: 700; cursor: pointer; margin: 10px 0;
-    box-shadow: 0 3px 10px rgba(30,36,48,0.25);
+    width: 100%; background: linear-gradient(135deg, #9CCC65, #7CB342); color: #fff; border: none; border-radius: 999px;
+    padding: 13px; font-size: 14px; font-weight: 800; cursor: pointer; margin: 10px 0;
+    box-shadow: 0 4px 14px rgba(124,179,66,0.4);
   }
   button.primary:active { transform: scale(0.98); }
   button.secondary {
-    background: #fff; color: #1E2430; border: 1px solid #D8D5C8; border-radius: 999px;
-    padding: 7px 14px; font-size: 12px; cursor: pointer;
+    background: #fff; color: #6E8B3D; border: 2px solid #D9ECC0; border-radius: 999px;
+    padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer;
   }
   button.icon-delete {
-    background: #F7F5EF; color: #B7B2A2; border: none; border-radius: 50%;
+    background: #F5F9EC; color: #B7C9A0; border: none; border-radius: 50%;
     width: 30px; height: 30px; min-width: 30px; display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer; padding: 0; flex-shrink: 0;
   }
-  button.icon-delete:hover, button.icon-delete:active { background: #F7E7E2; color: #C0503A; }
+  button.icon-delete:hover, button.icon-delete:active { background: #FDE7E7; color: #E4694F; }
   .payer-chip {
     display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 4px 3px 8px;
-    background: #F2F0E9; border-radius: 999px; color: #6B6656;
+    background: #F1F8E4; border-radius: 999px; color: #6E8B3D; font-weight: 700;
   }
-  .muted { color: #A6A28F; font-size: 12px; }
-  .big { font-size: 23px; font-weight: 700; letter-spacing: 0.01em; }
-  .status { font-size: 12px; color: #2F6F5E; text-align: center; margin-top: 6px; min-height: 16px; }
-  .pill { display: inline-block; background: #F2F0E9; border-radius: 999px; padding: 2px 10px; font-size: 11px; color: #8B8776; }
-  .loading-screen { text-align:center; padding: 80px 20px; color:#A6A28F; font-size:13px; }
+  .muted { color: #9BAE83; font-size: 12px; }
+  .big { font-size: 23px; font-weight: 800; letter-spacing: 0.01em; }
+  .status { font-size: 12px; color: #6E8B3D; text-align: center; margin-top: 6px; min-height: 16px; font-weight: 700; }
+  .pill { display: inline-block; background: #F1F8E4; border-radius: 999px; padding: 2px 10px; font-size: 11px; color: #6E8B3D; font-weight: 700; }
+  .loading-screen { text-align:center; padding: 80px 20px; color:#9BAE83; font-size:13px; }
 </style>
 </head>
 <body>
 <div class="hba">
   <div class="app-header">
     <div class="home-photo-wrap" id="home-photo-wrap" style="display:none;">
-      <img class="home-photo" id="home-photo" src="" alt="家族の写真">
+      <div class="home-photo-frame">
+        <div class="home-photo-inner">
+          <img class="home-photo" id="home-photo" src="" alt="家族の写真">
+        </div>
+      </div>
     </div>
-    <h1>わが家のお金アプリ</h1>
+    <h1>小野寺家の家計</h1>
     <div class="sub" id="conn-status"><span class="conn-dot" style="background:#D8B24A;"></span>接続中…</div>
     <div class="home-message" id="home-message"></div>
   </div>
 
   <div id="app-root" style="display:none;">
     <div class="hba-tabs">
-      <div class="hba-tab active" data-page="instr">振込指示</div>
-      <div class="hba-tab" data-page="input">今月の入力</div>
-      <div class="hba-tab" data-page="settings">設定</div>
-      <div class="hba-tab" data-page="sim">シミュレーション</div>
-      <div class="hba-tab" data-page="history">履歴</div>
+      <div class="hba-tab active" data-page="instr">💸振込指示</div>
+      <div class="hba-tab" data-page="input">📝今月の入力</div>
+      <div class="hba-tab" data-page="settings">🍀設定</div>
+      <div class="hba-tab" data-page="sim">🌱シミュレーション</div>
+      <div class="hba-tab" data-page="history">📅履歴</div>
     </div>
 
     <!-- 振込指示ページ -->
@@ -155,10 +179,6 @@
         </div>
         <div class="muted" style="margin-top:8px;">アップロードすると自動で縮小され、相手の端末にも表示されます。</div>
       </div>
-      <div class="hba-card">
-        <div class="hba-row"><span>夫の手取り 目安(万円)</span><input type="number" step="0.1" id="set-h-default"></div>
-        <div class="hba-row"><span>子供手当 月額(万円)</span><input type="number" step="0.1" id="set-child"></div>
-      </div>
       <div class="muted" style="margin: 16px 0 6px;">カテゴリ一覧(タップで編集)</div>
       <div id="cat-list"></div>
       <button class="secondary" id="add-cat-btn" style="width:100%; margin-top:8px;">＋ カテゴリを追加</button>
@@ -174,6 +194,10 @@
     <!-- 将来シミュレーションページ -->
     <div class="hba-page" id="page-sim">
       <p class="muted" style="margin-bottom:12px;">積立系カテゴリの月額を、複利で運用した場合の将来額を試算します。年利は各カテゴリごとに変更できます(デフォルト6%)。</p>
+      <div class="hba-card">
+        <div class="muted" style="margin-bottom:8px;">積立合計の推移</div>
+        <div style="position:relative; height:220px;"><canvas id="sim-chart"></canvas></div>
+      </div>
       <div id="sim-list"></div>
     </div>
   </div>
@@ -181,9 +205,10 @@
   <div id="loading-screen" class="loading-screen">データを読み込んでいます…</div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
 <script>
 (function(){
   // ---- Firebaseの設定(このプロジェクト専用の値。夫婦以外の家庭が同じ値を使っても混ざりません) ----
@@ -221,8 +246,9 @@
     {id:"loan_payoff_fund", name:"ローン完済準備金", amount:1.5, type:"積立", account:"夫の投資用口座", annualReturn:6, goalTarget:1303, currentBalance:0, payer:"夫婦"},
     {id:"repair_fund", name:"住宅修繕費", amount:1.5, type:"積立", account:"夫の投資用口座", annualReturn:6, goalTarget:180, currentBalance:0, payer:"夫婦"},
     {id:"education_fund", name:"教育資金積立(子2人分)", amount:3.0, type:"積立", account:"妻の投資用口座(SBI NISA)", annualReturn:6, goalTarget:800, currentBalance:0, payer:"夫婦"},
+    {id:"child_allowance", name:"子供手当", amount:1.5, type:"給付", account:"妻PayPay口座"},
   ];
-  const DEFAULT_SETTINGS = { husbandIncomeDefault: 60, childAllowance: 1.5, homePhoto: null, categories: DEFAULT_CATS };
+  const DEFAULT_SETTINGS = { homePhoto: null, categories: DEFAULT_CATS };
 
   let settings = null;
   let monthsCache = {};
@@ -332,9 +358,11 @@
   function computeInstructions(m){
     const husbandFixed = sumBy(c => c.account==="夫メインバンク" && c.type==="支出");
     const husbandAuto = sumBy(c => c.account==="夫の投資用口座");
-    const wifePayPayNeed = sumBy(c => c.account==="妻PayPay口座") + Number(settings.childAllowance||0);
+    const wifePayPayNeed = sumBy(c => c.account==="妻PayPay口座" && c.type==="支出") + sumBy(c => c.account==="妻PayPay口座" && c.type==="給付");
     const wifeFixed = sumBy(c => c.account==="妻メインバンク" && c.type==="支出");
     const wifeAuto = sumBy(c => c.account==="妻の投資用口座(SBI NISA)");
+    const benefitHusbandBank = sumBy(c => c.account==="夫メインバンク" && c.type==="給付");
+    const benefitWifeBank = sumBy(c => c.account==="妻メインバンク" && c.type==="給付");
 
     const hIncome = Number(m.husbandIncome||0), wIncome = Number(m.wifeIncome||0);
     const hBalance = Number(m.husbandBalance||0), wBalance = Number(m.wifeBalance||0);
@@ -344,31 +372,30 @@
     const wRatio = totalIncome > 0 ? wIncome/totalIncome : 0.5;
     const hRatio = 1 - wRatio;
 
-    // 「夫婦」負担カテゴリの総額(子供手当も夫婦の共有分として含める)
-    const childAllowance = Number(settings.childAllowance||0);
+    // 「夫婦」負担カテゴリの総額
     const sharedSum = sumBy(c => c.payer === "夫婦");
-    const totalShared = sharedSum + childAllowance;
+    const totalShared = sharedSum;
     const idealHusbandShare = totalShared * hRatio;
     const idealWifeShare = totalShared * wRatio;
 
     // 夫婦負担のうち、既にどちらかの口座から構造的に出ていく分
     const structHusband = sumBy(c => c.payer==="夫婦" && (c.account==="夫メインバンク" || c.account==="夫の投資用口座"));
     const structWife = sumBy(c => c.payer==="夫婦" && (c.account==="妻メインバンク" || c.account==="妻の投資用口座(SBI NISA)"));
-    const structPayPay = sumBy(c => c.payer==="夫婦" && c.account==="妻PayPay口座") + childAllowance;
+    const structPayPay = sumBy(c => c.payer==="夫婦" && c.account==="妻PayPay口座" && c.type==="支出");
 
-    // 妻のPayPay拠出額は「公正な負担額 - 既に構造的に払っている分」。PayPayの必要額を超えない範囲で
+    // 妻のPayPay拠出額は「公正な負担額 - 既に構造的に払っている分」。PayPayの必要額(給付を含む)を超えない範囲で
     const G_raw = idealWifeShare - structWife;
-    const G = Math.min(Math.max(0, G_raw), structPayPay);
-    const H = Math.max(0, structPayPay - G);
+    const G = Math.min(Math.max(0, G_raw), wifePayPayNeed);
+    const H = Math.max(0, wifePayPayNeed - G);
     // 清算(せいさん): PayPayの範囲では吸収しきれない公正負担の差額。正=妻→夫、負=夫→妻
-    const settlement = G_raw - G;
+    const settlement = G_raw - Math.min(Math.max(0, G_raw), structPayPay);
 
-    const F = Math.max(0, (wifeFixed + wifeAuto + G + settlement) - wIncome);
+    const F = Math.max(0, (wifeFixed + wifeAuto + G + settlement) - (wIncome + benefitWifeBank));
 
     const husbandOutflow = husbandFixed + husbandAuto + H + Math.max(0, -settlement);
-    const husbandAvailable = hIncome + hBalance + Math.max(0, settlement);
+    const husbandAvailable = hIncome + hBalance + Math.max(0, settlement) + benefitHusbandBank;
     const wifeOutflow = wifeFixed + wifeAuto + G + Math.max(0, settlement);
-    const wifeAvailable = wIncome + wBalance + Math.max(0, -settlement);
+    const wifeAvailable = wIncome + wBalance + Math.max(0, -settlement) + benefitWifeBank;
 
     const husbandMonthlyBalance = hIncome - husbandOutflow;
     const wifeMonthlyBalance = wIncome - wifeOutflow;
@@ -377,6 +404,22 @@
       husbandOutflow, husbandAvailable, wifeOutflow, wifeAvailable,
       husbandMonthlyBalance, wifeMonthlyBalance, wRatio, hRatio,
       totalShared, idealHusbandShare, idealWifeShare, structHusband, structWife, structPayPay };
+  }
+
+  function getInstructionItems(r){
+    const items = [
+      {key:'a', label:'① 夫メインバンク→妻メインバンク', amount: r.F},
+      {key:'b', label:'② 妻メインバンク→妻PayPay', amount: r.G},
+      {key:'c', label:'③ 夫メインバンク→妻PayPay', amount: r.H},
+    ];
+    if(Math.abs(r.settlement) > 0.05){
+      if(r.settlement > 0){
+        items.push({key:'d', label:'④ 清算：妻メインバンク→夫メインバンク', amount: r.settlement});
+      } else {
+        items.push({key:'d', label:'④ 清算：夫メインバンク→妻メインバンク', amount: -r.settlement});
+      }
+    }
+    return items;
   }
 
   function renderInstructions(monthKey){
@@ -390,6 +433,7 @@
       return;
     }
     const r = computeInstructions(m);
+    const checks = m.checks || {};
     let html = '';
     const balCard = (label, val) => {
       const isDeficit = val < 0;
@@ -403,55 +447,64 @@
     html += balCard('夫メインバンク', r.husbandMonthlyBalance);
     html += balCard('妻メインバンク', r.wifeMonthlyBalance);
 
-    html += `<div class="hba-action-card"><div class="muted">① 夫メインバンク→妻メインバンク</div><div class="big">${fmt(r.F)} 万円</div></div>`;
-    html += `<div class="hba-action-card"><div class="muted">② 妻メインバンク→妻PayPay(妻自身のアクション)</div><div class="big">${fmt(r.G)} 万円</div></div>`;
-    html += `<div class="hba-action-card"><div class="muted">③ 夫メインバンク→妻PayPay</div><div class="big">${fmt(r.H)} 万円</div></div>`;
-    if(Math.abs(r.settlement) > 0.05){
-      if(r.settlement > 0){
-        html += `<div class="hba-action-card" style="border-left-color:#A9812E;"><div class="muted">④ 清算：妻メインバンク→夫メインバンク</div><div class="big">${fmt(r.settlement)} 万円</div></div>`;
-      } else {
-        html += `<div class="hba-action-card" style="border-left-color:#A9812E;"><div class="muted">④ 清算：夫メインバンク→妻メインバンク</div><div class="big">${fmt(-r.settlement)} 万円</div></div>`;
-      }
-    }
+    const items = getInstructionItems(r);
+    items.forEach(item => {
+      const checked = !!checks[item.key];
+      html += `<div class="hba-action-card">
+        <div class="check-row">
+          <input type="checkbox" data-check="${item.key}" ${checked?"checked":""}>
+          <div style="flex:1;">
+            <div class="muted">${item.label}</div>
+            <div class="big">${fmt(item.amount)} 万円</div>
+          </div>
+        </div>
+      </div>`;
+    });
 
-    const hOk = r.husbandOutflow <= r.husbandAvailable + 0.05;
-    const wOk = r.wifeOutflow <= r.wifeAvailable + 0.05;
-    let memo = '';
-    if(!hOk){
-      memo = `夫メインバンクの残高が不足しそうです(約${fmt(r.husbandOutflow-r.husbandAvailable)}万円不足)`;
-    } else if(!wOk){
-      memo = `妻メインバンクの残高が不足しそうです(約${fmt(r.wifeOutflow-r.wifeAvailable)}万円不足)`;
-    } else {
-      memo = 'OK。固定費・投資自動引落・上記の振替をすべて行っても、両方の口座で残高は足ります。';
-    }
-    html += `<div class="hba-card"><div class="muted">メモ</div><div style="font-size:13px; margin-top:4px;">${memo}</div></div>`;
     html += `<div class="hba-card">
-      <div class="muted" style="margin-bottom:6px;">手取り比率での按分(参考)</div>
-      <div class="hba-row"><span>手取り比率(夫:妻)</span><span>${(r.hRatio*100).toFixed(0)}% : ${(r.wRatio*100).toFixed(0)}%</span></div>
-      <div class="hba-row"><span>夫婦の共有支出 合計</span><span>${fmt(r.totalShared)}万円</span></div>
-      <div class="hba-row"><span>夫の公正な負担額</span><span>${fmt(r.idealHusbandShare)}万円</span></div>
-      <div class="hba-row"><span>妻の公正な負担額</span><span>${fmt(r.idealWifeShare)}万円</span></div>
-      <div class="hba-row"><span>夫が構造的に既に支払う分(ローン等)</span><span>${fmt(r.structHusband)}万円</span></div>
-      <div class="hba-row"><span>妻が構造的に既に支払う分</span><span>${fmt(r.structWife)}万円</span></div>
-    </div>
-    <div class="hba-card">
       <div class="muted" style="margin-bottom:6px;">内訳(参考)</div>
       <div class="hba-row"><span>夫メインバンク固定費</span><span>${fmt(r.husbandFixed)}万円</span></div>
       <div class="hba-row"><span>夫メインバンク投資自動引落</span><span>${fmt(r.husbandAuto)}万円</span></div>
       <div class="hba-row"><span>妻メインバンク固定費</span><span>${fmt(r.wifeFixed)}万円</span></div>
       <div class="hba-row"><span>妻メインバンク投資自動引落</span><span>${fmt(r.wifeAuto)}万円</span></div>
-      <div class="hba-row"><span>妻PayPay必要額(子供手当込み)</span><span>${fmt(r.wifePayPayNeed)}万円</span></div>
+      <div class="hba-row"><span>妻PayPay必要額(給付含む)</span><span>${fmt(r.wifePayPayNeed)}万円</span></div>
     </div>`;
     content.innerHTML = html;
+
+    content.querySelectorAll('[data-check]').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        setCheck(monthKey, e.target.dataset.check, e.target.checked);
+      });
+    });
+  }
+
+  function setCheck(monthKey, key, value){
+    const m = getMonth(monthKey) || {};
+    m.checks = Object.assign({}, m.checks, { [key]: value });
+    monthsCache[monthKey] = m;
+    monthsCol.doc(monthKey).set({ checks: m.checks }, { merge: true }).catch(e=>{
+      console.error('check save failed', e);
+    });
   }
 
   function renderCatList(){
     const el = document.getElementById('cat-list');
     const trashIcon = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>`;
-    el.innerHTML = settings.categories.map((c, i) => `
+    el.innerHTML = settings.categories.map((c, i) => {
+      const isBenefit = c.type === "給付";
+      const accountLabel = isBenefit ? "振込先" : "引落";
+      return `
       <div class="hba-card" style="padding:12px;">
-        <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;">
+        <div style="display:flex; gap:6px; margin-bottom:8px; align-items:center;">
           <input type="text" data-i="${i}" data-f="name" value="${c.name}" style="flex:1; width:auto; text-align:left;">
+          ${!isBenefit ? `
+          <span class="payer-chip">負担
+            <select data-i="${i}" data-f="payer" style="border:none; background:transparent; padding:0; font-size:11px; color:#1E2430;">
+              <option value="夫" ${c.payer==="夫"?"selected":""}>夫</option>
+              <option value="妻" ${c.payer==="妻"?"selected":""}>妻</option>
+              <option value="夫婦" ${(!c.payer||c.payer==="夫婦")?"selected":""}>夫婦</option>
+            </select>
+          </span>` : ''}
           <button class="icon-delete" data-del="${i}" aria-label="削除" title="このカテゴリを削除">${trashIcon}</button>
         </div>
         <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
@@ -460,17 +513,9 @@
           <select data-i="${i}" data-f="type">
             <option value="支出" ${c.type==="支出"?"selected":""}>支出</option>
             <option value="積立" ${c.type==="積立"?"selected":""}>積立</option>
+            <option value="給付" ${c.type==="給付"?"selected":""}>給付</option>
           </select>
-        </div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px;">
-          <span class="payer-chip">負担
-            <select data-i="${i}" data-f="payer" style="border:none; background:transparent; padding:0; font-size:11px; color:#1E2430;">
-              <option value="夫" ${c.payer==="夫"?"selected":""}>夫</option>
-              <option value="妻" ${c.payer==="妻"?"selected":""}>妻</option>
-              <option value="夫婦" ${(!c.payer||c.payer==="夫婦")?"selected":""}>夫婦</option>
-            </select>
-          </span>
-          <span class="payer-chip">引落
+          <span class="payer-chip">${accountLabel}
             <select data-i="${i}" data-f="account" style="border:none; background:transparent; padding:0; font-size:11px; color:#1E2430;">
               ${ACCOUNTS.map(a=>`<option value="${a}" ${c.account===a?"selected":""}>${a}</option>`).join('')}
             </select>
@@ -491,7 +536,7 @@
           <span class="muted">万円</span>
         </div>` : ''}
       </div>
-    `).join('');
+    `;}).join('');
     el.querySelectorAll('input,select').forEach(inp => {
       inp.addEventListener('change', (e) => {
         const i = Number(e.target.dataset.i), f = e.target.dataset.f;
@@ -523,10 +568,16 @@
     let html = '';
     for(const mk of months.slice().reverse()){
       const m = getMonth(mk);
+      const r = computeInstructions(m);
+      const items = getInstructionItems(r);
+      const checks = m.checks || {};
+      const doneCount = items.filter(it => checks[it.key]).length;
+      const statusColor = doneCount===items.length ? '#2F6F5E' : '#D8B24A';
       html += `<div class="hba-card">
         <div style="display:flex; justify-content:space-between; align-items:center;"><span class="big" style="font-size:16px;">${mk}</span>
         <button class="secondary" data-view="${mk}">振込指示を見る</button></div>
         <div class="muted" style="margin-top:6px;">夫手取り${fmt(m.husbandIncome)}万円／妻手取り${fmt(m.wifeIncome)}万円</div>
+        <div style="margin-top:6px; font-size:12px; font-weight:700; color:${statusColor};">✅ ${doneCount}/${items.length} 完了</div>
       </div>`;
     }
     el.innerHTML = html;
@@ -561,6 +612,7 @@
     return months >= maxMonths ? null : months;
   }
 
+  let simChartInstance = null;
   function renderSim(){
     const el = document.getElementById('sim-list');
     const goalCats = settings.categories.filter(c=>c.type==="積立");
@@ -598,6 +650,33 @@
       </div>
     </div>`;
     el.innerHTML = html;
+
+    const ctx = document.getElementById('sim-chart');
+    if(simChartInstance) simChartInstance.destroy();
+    if(ctx && window.Chart){
+      simChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: horizons.map(y=>y+'年後'),
+          datasets: [{
+            label: '積立合計(万円)',
+            data: totalByHorizon,
+            backgroundColor: 'rgba(124,179,66,0.75)',
+            borderRadius: 10,
+            borderSkipped: false,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          animation: { duration: 1100, easing: 'easeOutQuart' },
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { color: '#9BAE83', font: { family: "'M PLUS Rounded 1c'" } }, grid: { color: '#EFF7DE' } },
+            x: { ticks: { color: '#6E8B3D', font: { family: "'M PLUS Rounded 1c'", weight: 700 } }, grid: { display: false } }
+          }
+        }
+      });
+    }
   }
 
   document.querySelectorAll('.hba-tab').forEach(tab=>{
@@ -610,8 +689,6 @@
       if(tab.dataset.page==='history') renderHistory();
       if(tab.dataset.page==='sim') renderSim();
       if(tab.dataset.page==='settings'){
-        document.getElementById('set-h-default').value = settings.husbandIncomeDefault;
-        document.getElementById('set-child').value = settings.childAllowance;
         renderCatList();
         renderHomePhoto();
       }
@@ -623,8 +700,6 @@
     renderCatList();
   });
   document.getElementById('save-settings-btn').addEventListener('click', ()=>{
-    settings.husbandIncomeDefault = parseFloat(document.getElementById('set-h-default').value)||0;
-    settings.childAllowance = parseFloat(document.getElementById('set-child').value)||0;
     saveSettings();
   });
 
@@ -660,7 +735,6 @@
 
     const mk = thisMonthStr();
     document.getElementById('in-month').value = mk;
-    document.getElementById('in-h-income').value = settings.husbandIncomeDefault;
     const existing = getMonth(mk);
     if(existing){
       document.getElementById('in-h-income').value = existing.husbandIncome;
@@ -679,8 +753,6 @@
     if(active==='history') renderHistory();
     if(active==='sim') renderSim();
     if(active==='settings'){
-      document.getElementById('set-h-default').value = settings.husbandIncomeDefault;
-      document.getElementById('set-child').value = settings.childAllowance;
       renderCatList();
     }
   }
