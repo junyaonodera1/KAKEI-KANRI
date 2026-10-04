@@ -358,11 +358,12 @@
 
   function computeInstructions(m){
     const husbandFixed = sumBy(c => c.account==="夫メインバンク" && c.type==="支出");
-    const husbandAuto = sumBy(c => c.account==="夫の投資用口座");
+    // 投資用口座への積立は、それぞれ夫/妻のメインバンクから自動引落されるものとして集計する
+    const husbandAuto = sumBy(c => c.account==="夫の投資用口座" && c.type!=="給付");
     const wifePayPayNeed = sumBy(c => c.account==="妻PayPay口座" && c.type==="支出");  // PayPayからの支出合計
     const benefitPayPay = sumBy(c => c.account==="妻PayPay口座" && c.type==="給付");
     const wifeFixed = sumBy(c => c.account==="妻メインバンク" && c.type==="支出");
-    const wifeAuto = sumBy(c => c.account==="妻の投資用口座(SBI NISA)");
+    const wifeAuto = sumBy(c => c.account==="妻の投資用口座(SBI NISA)" && c.type!=="給付");
     const benefitHusbandBank = sumBy(c => c.account==="夫メインバンク" && c.type==="給付");
     const benefitWifeBank = sumBy(c => c.account==="妻メインバンク" && c.type==="給付");
 
@@ -483,9 +484,9 @@
     html += `<div class="hba-card">
       <div class="muted" style="margin-bottom:6px;">内訳(参考)</div>
       <div class="hba-row"><span>夫メインバンク固定費</span><span>${fmt(r.husbandFixed)}万円</span></div>
-      <div class="hba-row"><span>夫メインバンク投資自動引落</span><span>${fmt(r.husbandAuto)}万円</span></div>
+      <div class="hba-row"><span>夫メインバンクから投資用口座へ(自動引落)</span><span>${fmt(r.husbandAuto)}万円</span></div>
       <div class="hba-row"><span>妻メインバンク固定費</span><span>${fmt(r.wifeFixed)}万円</span></div>
-      <div class="hba-row"><span>妻メインバンク投資自動引落</span><span>${fmt(r.wifeAuto)}万円</span></div>
+      <div class="hba-row"><span>妻メインバンクから投資用口座へ(自動引落)</span><span>${fmt(r.wifeAuto)}万円</span></div>
       <div class="hba-row"><span>妻PayPay支出(給付で充当後の不足 ${fmt(r.payPayNeed)})</span><span>${fmt(r.wifePayPayNeed)}万円</span></div>
       <div class="hba-row"><span>夫婦の出費</span><span>${fmt(r.totalShared)}万円</span></div>
       <div class="hba-row"><span>給付(先に充当)</span><span>−${fmt(r.benefitUsed)}万円</span></div>
