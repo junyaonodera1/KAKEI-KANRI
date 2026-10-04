@@ -346,7 +346,8 @@
 
   function setMonth(monthKey, data){
     const withTs = Object.assign({}, data, { _modifiedAt: new Date().toISOString() });
-    return monthsCol.doc(monthKey).set(withTs);
+    // merge: 入力値以外(チェック状態など)を消さない
+    return monthsCol.doc(monthKey).set(withTs, { merge: true });
   }
   function getMonth(monthKey){ return monthsCache[monthKey] || null; }
   function listMonths(){ return Object.keys(monthsCache).sort(); }
@@ -435,6 +436,12 @@
     const r = computeInstructions(m);
     const checks = m.checks || {};
     let html = '';
+    const ts = m.instructedAt || m._modifiedAt;
+    if(ts){
+      const d = new Date(ts);
+      const p = n => String(n).padStart(2,'0');
+      html += `<div class="muted" style="margin-bottom:8px;">最終指示: ${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())} 時点の入力値</div>`;
+    }
     const balCard = (label, val) => {
       const isDeficit = val < 0;
       const color = isDeficit ? '#C0503A' : '#2F6F5E';
@@ -711,7 +718,13 @@
       wifeIncome: parseFloat(document.getElementById('in-w-income').value)||0,
       husbandBalance: parseFloat(document.getElementById('in-h-balance').value)||0,
       wifeBalance: parseFloat(document.getElementById('in-w-balance').value)||0,
+      instructedAt: new Date().toISOString(),
     };
+    // 入力値が前回の指示時から変わった場合は、チェック状態をリセットする(古い完了印が残らないように)
+    const prev = getMonth(monthKey);
+    if(prev && ['husbandIncome','wifeIncome','husbandBalance','wifeBalance'].some(k => Number(prev[k]) !== data[k])){
+      data.checks = {};
+    }
     setMonth(monthKey, data).then(()=>{
       const s = document.getElementById('save-status');
       s.textContent = monthKey+' を保存しました(相手にも自動反映されます)';
@@ -733,17 +746,37 @@
     renderHomePhoto();
     renderHomeMessage();
 
-    const mk = thisMonthStr();
+    // 起動時: 「最後に指示を出した月」を自動で開き、その時点の入力値と指示を表示する
+    // (誰がいつ開いても同じ内容になる。無ければ今月)
+    const mk = latestInstructedMonth() || thisMonthStr();
     document.getElementById('in-month').value = mk;
-    const existing = getMonth(mk);
-    if(existing){
-      document.getElementById('in-h-income').value = existing.husbandIncome;
-      document.getElementById('in-w-income').value = existing.wifeIncome;
-      document.getElementById('in-h-balance').value = existing.husbandBalance;
-      document.getElementById('in-w-balance').value = existing.wifeBalance;
-    }
-    renderInstructions(existing ? mk : null);
+    fillInputForm(mk);
+    renderInstructions(getMonth(mk) ? mk : null);
   }
+
+  function latestInstructedMonth(){
+    let best = null, bestTs = '';
+    listMonths().forEach(k => {
+      const m = getMonth(k);
+      if(!m || m.husbandIncome==null) return;
+      const ts = m.instructedAt || m._modifiedAt || '';
+      if(best === null || ts > bestTs){ best = k; bestTs = ts; }
+    });
+    return best;
+  }
+
+  // 入力フォームに、保存済みの値を反映(無ければ空欄)
+  function fillInputForm(mk){
+    const m = getMonth(mk);
+    const set = (id, v) => { document.getElementById(id).value = (m && v!=null) ? v : ''; };
+    set('in-h-income', m && m.husbandIncome);
+    set('in-w-income', m && m.wifeIncome);
+    set('in-h-balance', m && m.husbandBalance);
+    set('in-w-balance', m && m.wifeBalance);
+  }
+  document.getElementById('in-month').addEventListener('change', e => {
+    if(e.target.value) fillInputForm(e.target.value);
+  });
 
   function onRemoteUpdate(){
     if(!appStarted) return;
