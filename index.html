@@ -390,17 +390,18 @@
     // 清算(せいさん): PayPayの範囲では吸収しきれない公正負担の差額。正=妻→夫、負=夫→妻
     const settlement = G_raw - Math.min(Math.max(0, G_raw), structPayPay);
 
-    const F = Math.max(0, (wifeFixed + wifeAuto + G + settlement) - (wIncome + benefitWifeBank));
+    // ルール: 夫・妻単独の支出(お小遣い・保険・スマホ等)は各自の責任。配偶者のメインバンクへの補填送金はしない。
+    // 不足は「赤字」として表示するだけ。
 
     const husbandOutflow = husbandFixed + husbandAuto + H + Math.max(0, -settlement);
     const husbandAvailable = hIncome + hBalance + Math.max(0, settlement) + benefitHusbandBank;
     const wifeOutflow = wifeFixed + wifeAuto + G + Math.max(0, settlement);
     const wifeAvailable = wIncome + wBalance + Math.max(0, -settlement) + benefitWifeBank;
 
-    const husbandMonthlyBalance = hIncome - husbandOutflow;
-    const wifeMonthlyBalance = wIncome - wifeOutflow;
+    const husbandMonthlyBalance = hIncome + benefitHusbandBank + Math.max(0, settlement) - husbandOutflow;
+    const wifeMonthlyBalance = wIncome + benefitWifeBank + Math.max(0, -settlement) - wifeOutflow;
 
-    return { F, G, H, settlement, husbandFixed, husbandAuto, wifePayPayNeed, wifeFixed, wifeAuto,
+    return { G, H, settlement, husbandFixed, husbandAuto, wifePayPayNeed, wifeFixed, wifeAuto,
       husbandOutflow, husbandAvailable, wifeOutflow, wifeAvailable,
       husbandMonthlyBalance, wifeMonthlyBalance, wRatio, hRatio,
       totalShared, idealHusbandShare, idealWifeShare, structHusband, structWife, structPayPay };
@@ -408,15 +409,14 @@
 
   function getInstructionItems(r){
     const items = [
-      {key:'a', label:'① 夫メインバンク→妻メインバンク', amount: r.F},
-      {key:'b', label:'② 妻メインバンク→妻PayPay', amount: r.G},
-      {key:'c', label:'③ 夫メインバンク→妻PayPay', amount: r.H},
+      {key:'b', label:'① 妻メインバンク→妻PayPay', amount: r.G},
+      {key:'c', label:'② 夫メインバンク→妻PayPay', amount: r.H},
     ];
     if(Math.abs(r.settlement) > 0.05){
       if(r.settlement > 0){
-        items.push({key:'d', label:'④ 清算：妻メインバンク→夫メインバンク', amount: r.settlement});
+        items.push({key:'d', label:'③ 清算：妻メインバンク→夫メインバンク', amount: r.settlement});
       } else {
-        items.push({key:'d', label:'④ 清算：夫メインバンク→妻メインバンク', amount: -r.settlement});
+        items.push({key:'d', label:'③ 清算：夫メインバンク→妻メインバンク', amount: -r.settlement});
       }
     }
     return items;
