@@ -359,7 +359,8 @@
   function computeInstructions(m){
     const husbandFixed = sumBy(c => c.account==="夫メインバンク" && c.type==="支出");
     const husbandAuto = sumBy(c => c.account==="夫の投資用口座");
-    const wifePayPayNeed = sumBy(c => c.account==="妻PayPay口座" && c.type==="支出") + sumBy(c => c.account==="妻PayPay口座" && c.type==="給付");
+    const wifePayPayNeed = sumBy(c => c.account==="妻PayPay口座" && c.type==="支出");  // PayPayからの支出合計
+    const benefitPayPay = sumBy(c => c.account==="妻PayPay口座" && c.type==="給付");
     const wifeFixed = sumBy(c => c.account==="妻メインバンク" && c.type==="支出");
     const wifeAuto = sumBy(c => c.account==="妻の投資用口座(SBI NISA)");
     const benefitHusbandBank = sumBy(c => c.account==="夫メインバンク" && c.type==="給付");
@@ -373,23 +374,29 @@
     const wRatio = totalIncome > 0 ? wIncome/totalIncome : 0.5;
     const hRatio = 1 - wRatio;
 
-    // 「夫婦」負担カテゴリの総額
-    const sharedSum = sumBy(c => c.payer === "夫婦");
-    const totalShared = sharedSum;
-    const idealHusbandShare = totalShared * hRatio;
-    const idealWifeShare = totalShared * wRatio;
+    // ① 夫婦の出費(給付は含めない) と 給付の合計
+    const isShared = c => c.payer==="夫婦" && c.type!=="給付";
+    const totalShared = sumBy(isShared);
+    const totalBenefit = sumBy(c => c.type==="給付");
+    // ② 給付をまず夫婦の出費に充当し、残りを手取り比率で負担する
+    const netShared = Math.max(0, totalShared - totalBenefit);
+    const benefitUsed = totalShared - netShared;
+    const idealHusbandShare = netShared * hRatio;
+    const idealWifeShare = netShared * wRatio;
 
-    // 夫婦負担のうち、既にどちらかの口座から構造的に出ていく分
-    const structHusband = sumBy(c => c.payer==="夫婦" && (c.account==="夫メインバンク" || c.account==="夫の投資用口座"));
-    const structWife = sumBy(c => c.payer==="夫婦" && (c.account==="妻メインバンク" || c.account==="妻の投資用口座(SBI NISA)"));
-    const structPayPay = sumBy(c => c.payer==="夫婦" && c.account==="妻PayPay口座" && c.type==="支出");
+    // ③ 各口座から既に出ていく夫婦の出費(構造的な支払い)
+    const structHusband = sumBy(c => isShared(c) && (c.account==="夫メインバンク" || c.account==="夫の投資用口座"));
+    const structWife = sumBy(c => isShared(c) && (c.account==="妻メインバンク" || c.account==="妻の投資用口座(SBI NISA)"));
+    const structPayPay = sumBy(c => isShared(c) && c.account==="妻PayPay口座");
 
-    // 妻のPayPay拠出額は「公正な負担額 - 既に構造的に払っている分」。PayPayの必要額(給付を含む)を超えない範囲で
-    const G_raw = idealWifeShare - structWife;
-    const G = Math.min(Math.max(0, G_raw), wifePayPayNeed);
-    const H = Math.max(0, wifePayPayNeed - G);
-    // 清算(せいさん): PayPayの範囲では吸収しきれない公正負担の差額。正=妻→夫、負=夫→妻
-    const settlement = G_raw - Math.min(Math.max(0, G_raw), structPayPay);
+    // ④ 妻が実質負担している額 = 妻の口座から出る分 - 妻メインバンクに入る給付 (+ PayPayへの拠出G)
+    //    PayPayは給付が先に入るので、不足分(payPayNeed)だけを夫婦で拠出する
+    const payPayNeed = Math.max(0, wifePayPayNeed - benefitPayPay);
+    const G_raw = idealWifeShare - (structWife - benefitWifeBank);
+    const G = Math.min(Math.max(0, G_raw), payPayNeed);
+    const H = Math.max(0, payPayNeed - G);
+    // 清算: 公正な負担額との差。正=妻→夫、負=夫→妻
+    const settlement = G_raw - G;
 
     // ルール: 夫・妻単独の支出(お小遣い・保険・スマホ等)は各自の責任。配偶者のメインバンクへの補填送金はしない。
     // 不足は「赤字」として表示するだけ。
@@ -405,7 +412,7 @@
     return { G, H, settlement, husbandFixed, husbandAuto, wifePayPayNeed, wifeFixed, wifeAuto,
       husbandOutflow, husbandAvailable, wifeOutflow, wifeAvailable,
       husbandMonthlyBalance, wifeMonthlyBalance, wRatio, hRatio,
-      totalShared, idealHusbandShare, idealWifeShare, structHusband, structWife, structPayPay };
+      totalShared, totalBenefit, benefitUsed, netShared, payPayNeed, benefitPayPay, idealHusbandShare, idealWifeShare, structHusband, structWife, structPayPay };
   }
 
   function getInstructionItems(r){
@@ -474,7 +481,11 @@
       <div class="hba-row"><span>夫メインバンク投資自動引落</span><span>${fmt(r.husbandAuto)}万円</span></div>
       <div class="hba-row"><span>妻メインバンク固定費</span><span>${fmt(r.wifeFixed)}万円</span></div>
       <div class="hba-row"><span>妻メインバンク投資自動引落</span><span>${fmt(r.wifeAuto)}万円</span></div>
-      <div class="hba-row"><span>妻PayPay必要額(給付含む)</span><span>${fmt(r.wifePayPayNeed)}万円</span></div>
+      <div class="hba-row"><span>妻PayPay支出(給付で充当後の不足 ${fmt(r.payPayNeed)})</span><span>${fmt(r.wifePayPayNeed)}万円</span></div>
+      <div class="hba-row"><span>夫婦の出費</span><span>${fmt(r.totalShared)}万円</span></div>
+      <div class="hba-row"><span>給付(先に充当)</span><span>−${fmt(r.benefitUsed)}万円</span></div>
+      <div class="hba-row"><span>残りを手取り比率で負担</span><span>${fmt(r.netShared)}万円</span></div>
+      <div class="hba-row"><span>　夫 ${fmt(r.hRatio*100)}% / 妻 ${fmt(r.wRatio*100)}%</span><span>${fmt(r.idealHusbandShare)} / ${fmt(r.idealWifeShare)}万円</span></div>
     </div>`;
     content.innerHTML = html;
 
