@@ -383,8 +383,8 @@
     const benefitUsed = totalShared - netShared;
     // 手取りから夫婦の出費を負担した後に手元に残る額が、夫と妻で同じになるように割り振る
     //   hIncome - 夫負担 = wIncome - 妻負担 , 夫負担 + 妻負担 = netShared
-    //   → 妻負担 = (netShared - (hIncome - wIncome)) / 2   (0〜netShared の範囲に収める)
-    const idealWifeShare = Math.min(netShared, Math.max(0, (netShared - (hIncome - wIncome)) / 2));
+    //   → 妻負担 = (netShared - (hIncome - wIncome)) / 2
+    const idealWifeShare = (netShared - (hIncome - wIncome)) / 2;  // 負の場合は夫から妻へ差額を移して揃える
     const idealHusbandShare = netShared - idealWifeShare;
     const leftoverHusband = hIncome - idealHusbandShare;
     const leftoverWife = wIncome - idealWifeShare;
